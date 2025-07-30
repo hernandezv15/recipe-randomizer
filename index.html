@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recipe Randomizer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin-top: 10px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+
+    .recipe {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 5px;
+    }
+
+    #loading {
+      color: blue;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🍽️ Cloud-Based Recipe Randomizer</h1>
+
+  <label for="ingredients">Enter ingredients (comma-separated):</label><br>
+  <input type="text" id="ingredients" placeholder="e.g. chicken, garlic, tomato"><br><br>
+
+  <button onclick="getRecipes()">Find Recipes</button>
+  <button onclick="getSurprise()">Chef's Surprise</button>
+
+  <div id="loading"></div>
+  <div id="result"></div>
+
+  <script>
+    const apiBase = "https://u6bi014pb2.execute-api.us-east-2.amazonaws.com";
+
+    function renderRecipe(recipe) {
+      return `
+        <div class="recipe">
+          <h3>${recipe.title}</h3>
+          <strong>Ingredients:</strong><br>
+          <p>${recipe.ingredients}</p>
+          <strong>Directions:</strong><br>
+          <p>${recipe.directions}</p>
+        </div>
+      `;
+    }
+
+    async function getRecipes() {
+      const ingredients = document.getElementById("ingredients").value.trim();
+      const resultDiv = document.getElementById("result");
+      const loadingDiv = document.getElementById("loading");
+
+      resultDiv.innerHTML = '';
+      loadingDiv.textContent = '🔄 Searching recipes...';
+
+      try {
+        const res = await fetch(`${apiBase}/get-recipes?ingredients=${encodeURIComponent(ingredients)}`);
+        const data = await res.json();
+        loadingDiv.textContent = '';
+
+        if (!data || data.message === 'No matching recipes found') {
+          resultDiv.innerHTML = '<b>No matching recipes found.</b>';
+          return;
+        }
+
+        resultDiv.innerHTML = data.slice(0, 3).map(renderRecipe).join('');
+      } catch (err) {
+        loadingDiv.textContent = '';
+        resultDiv.innerHTML = `<b style="color:red;">⚠️ Error: ${err.message}</b>`;
+      }
+    }
+
+    async function getSurprise() {
+      const resultDiv = document.getElementById("result");
+      const loadingDiv = document.getElementById("loading");
+
+      resultDiv.innerHTML = '';
+      loadingDiv.textContent = '🎲 Picking a surprise recipe...';
+
+      try {
+        const res = await fetch(`${apiBase}/chef-surprise`);
+        const data = await res.json();
+        loadingDiv.textContent = '';
+
+        resultDiv.innerHTML = renderRecipe(data);
+      } catch (err) {
+        loadingDiv.textContent = '';
+        resultDiv.innerHTML = `<b style="color:red;">⚠️ Error: ${err.message}</b>`;
+      }
+    }
+  </script>
+</body>
+</html>
