@@ -1,49 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Recipe Randomizer</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fa;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
     }
 
-    input {
-      padding: 10px;
-      font-size: 16px;
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
       width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
       box-sizing: border-box;
     }
 
     button {
-      padding: 10px 15px;
+      padding: 12px 18px;
       font-size: 16px;
-      margin-top: 10px;
-      margin-right: 10px;
+      border: none;
+      border-radius: 6px;
+      background-color: #3498db;
+      color: white;
       cursor: pointer;
+      margin-right: 10px;
+      transition: background-color 0.3s;
     }
 
-    .recipe {
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
-      padding: 15px;
-      margin-top: 20px;
-      border-radius: 5px;
+    button:hover {
+      background-color: #2980b9;
     }
 
     #loading {
-      color: blue;
-      margin-top: 10px;
+      margin-top: 15px;
+      font-style: italic;
+      color: #555;
+    }
+
+    .recipe {
+      background-color: #ffffff;
+      border: 1px solid #e1e4e8;
+      border-left: 4px solid #3498db;
+      padding: 16px;
+      margin-top: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .recipe h3 {
+      margin-top: 0;
+      color: #2c3e50;
+    }
+
+    .recipe p {
+      margin: 6px 0 12px;
+      line-height: 1.5;
+    }
+
+    strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #555;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 20px 10px;
+      }
+      button {
+        width: 100%;
+        margin-bottom: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🍽️ Cloud-Based Recipe Randomizer</h1>
+  <h1>Cloud-Based Recipe Randomizer</h1>
 
-  <label for="ingredients">Enter ingredients (comma-separated):</label><br>
-  <input type="text" id="ingredients" placeholder="e.g. chicken, garlic, tomato"><br><br>
+  <label for="ingredients">Enter ingredients (comma-separated):</label>
+  <input type="text" id="ingredients" placeholder="e.g. chicken, garlic, tomato">
 
   <button onclick="getRecipes()">Find Recipes</button>
   <button onclick="getSurprise()">Chef's Surprise</button>
@@ -58,9 +112,9 @@
       return `
         <div class="recipe">
           <h3>${recipe.title}</h3>
-          <strong>Ingredients:</strong><br>
+          <strong>Ingredients:</strong>
           <p>${recipe.ingredients}</p>
-          <strong>Directions:</strong><br>
+          <strong>Directions:</strong>
           <p>${recipe.directions}</p>
         </div>
       `;
@@ -72,7 +126,7 @@
       const loadingDiv = document.getElementById("loading");
 
       resultDiv.innerHTML = '';
-      loadingDiv.textContent = '🔄 Searching recipes...';
+      loadingDiv.textContent = 'Searching for recipes...';
 
       try {
         const res = await fetch(`${apiBase}/get-recipes?ingredients=${encodeURIComponent(ingredients)}`);
@@ -80,14 +134,14 @@
         loadingDiv.textContent = '';
 
         if (!data || data.message === 'No matching recipes found') {
-          resultDiv.innerHTML = '<b>No matching recipes found.</b>';
+          resultDiv.innerHTML = '<p><strong>No matching recipes found.</strong></p>';
           return;
         }
 
         resultDiv.innerHTML = data.slice(0, 3).map(renderRecipe).join('');
       } catch (err) {
         loadingDiv.textContent = '';
-        resultDiv.innerHTML = `<b style="color:red;">⚠️ Error: ${err.message}</b>`;
+        resultDiv.innerHTML = `<p style="color:red;"><strong>Error: ${err.message}</strong></p>`;
       }
     }
 
@@ -96,7 +150,7 @@
       const loadingDiv = document.getElementById("loading");
 
       resultDiv.innerHTML = '';
-      loadingDiv.textContent = '🎲 Picking a surprise recipe...';
+      loadingDiv.textContent = 'Loading a surprise recipe...';
 
       try {
         const res = await fetch(`${apiBase}/chef-surprise`);
@@ -106,7 +160,7 @@
         resultDiv.innerHTML = renderRecipe(data);
       } catch (err) {
         loadingDiv.textContent = '';
-        resultDiv.innerHTML = `<b style="color:red;">⚠️ Error: ${err.message}</b>`;
+        resultDiv.innerHTML = `<p style="color:red;"><strong>Error: ${err.message}</strong></p>`;
       }
     }
   </script>
