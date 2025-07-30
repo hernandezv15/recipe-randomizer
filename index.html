@@ -1,167 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Recipe Randomizer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cloud-Based Recipe App</title>
   <style>
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f7fa;
+      font-family: Arial, sans-serif;
+      background-color: #f5f9fc;
       color: #333;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    h1 {
       text-align: center;
+      padding: 20px;
+    }
+    h1 {
       color: #2c3e50;
     }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 8px;
-    }
-
     input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
+      width: 300px;
+      padding: 10px;
+      margin-bottom: 15px;
       border: 1px solid #ccc;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      box-sizing: border-box;
+      border-radius: 5px;
     }
-
     button {
-      padding: 12px 18px;
-      font-size: 16px;
+      padding: 10px 16px;
+      margin: 5px;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       background-color: #3498db;
       color: white;
+      font-weight: bold;
       cursor: pointer;
-      margin-right: 10px;
-      transition: background-color 0.3s;
     }
-
     button:hover {
       background-color: #2980b9;
     }
-
-    #loading {
-      margin-top: 15px;
-      font-style: italic;
-      color: #555;
-    }
-
-    .recipe {
+    .recipe-card {
       background-color: #ffffff;
-      border: 1px solid #e1e4e8;
-      border-left: 4px solid #3498db;
-      padding: 16px;
-      margin-top: 20px;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 15px auto;
+      max-width: 600px;
+      text-align: left;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    .recipe h3 {
+    .recipe-card h3 {
       margin-top: 0;
-      color: #2c3e50;
-    }
-
-    .recipe p {
-      margin: 6px 0 12px;
-      line-height: 1.5;
-    }
-
-    strong {
-      display: block;
-      margin-bottom: 4px;
-      color: #555;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 20px 10px;
-      }
-      button {
-        width: 100%;
-        margin-bottom: 10px;
-      }
+      color: #34495e;
     }
   </style>
 </head>
 <body>
-  <h1>Cloud-Based Recipe Randomizer</h1>
+  <h1>Cloud-Based Recipe App</h1>
+  <p>Enter ingredients (comma-separated):</p>
+  <input type="text" id="ingredientsInput" placeholder="e.g. chicken, garlic, tomato" />
+  <br />
+  <button onclick="findRecipes()">Find Recipes</button>
+  <button onclick="chefSurprise()">Chef's Surprise</button>
 
-  <label for="ingredients">Enter ingredients (comma-separated):</label>
-  <input type="text" id="ingredients" placeholder="e.g. chicken, garlic, tomato">
-
-  <button onclick="getRecipes()">Find Recipes</button>
-  <button onclick="getSurprise()">Chef's Surprise</button>
-
-  <div id="loading"></div>
-  <div id="result"></div>
+  <div id="results"></div>
 
   <script>
     const apiBase = "https://u6bi014pb2.execute-api.us-east-2.amazonaws.com";
 
-    function renderRecipe(recipe) {
-      return `
-        <div class="recipe">
-          <h3>${recipe.title}</h3>
-          <strong>Ingredients:</strong>
-          <p>${recipe.ingredients}</p>
-          <strong>Directions:</strong>
-          <p>${recipe.directions}</p>
-        </div>
-      `;
+    function findRecipes() {
+      const input = document.getElementById("ingredientsInput").value.trim();
+      if (!input) return alert("Please enter ingredients");
+
+      fetch(`${apiBase}/get-recipes?ingredients=${encodeURIComponent(input)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          displayResults(data);
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          alert("Failed to fetch recipes.");
+        });
     }
 
-    async function getRecipes() {
-      const ingredients = document.getElementById("ingredients").value.trim();
-      const resultDiv = document.getElementById("result");
-      const loadingDiv = document.getElementById("loading");
-
-      resultDiv.innerHTML = '';
-      loadingDiv.textContent = 'Searching for recipes...';
-
-      try {
-        const res = await fetch(`${apiBase}/get-recipes?ingredients=${encodeURIComponent(ingredients)}`);
-        const data = await res.json();
-        loadingDiv.textContent = '';
-
-        if (!data || data.message === 'No matching recipes found') {
-          resultDiv.innerHTML = '<p><strong>No matching recipes found.</strong></p>';
-          return;
-        }
-
-        resultDiv.innerHTML = data.slice(0, 3).map(renderRecipe).join('');
-      } catch (err) {
-        loadingDiv.textContent = '';
-        resultDiv.innerHTML = `<p style="color:red;"><strong>Error: ${err.message}</strong></p>`;
-      }
+    function chefSurprise() {
+      fetch(`${apiBase}/chef-surprise`)
+        .then((res) => res.json())
+        .then((data) => {
+          displayResults(data);
+        })
+        .catch((err) => {
+          console.error("Error:", err);
+          alert("Chef's Surprise failed.");
+        });
     }
 
-    async function getSurprise() {
-      const resultDiv = document.getElementById("result");
-      const loadingDiv = document.getElementById("loading");
+    function displayResults(recipes) {
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "";
 
-      resultDiv.innerHTML = '';
-      loadingDiv.textContent = 'Loading a surprise recipe...';
-
-      try {
-        const res = await fetch(`${apiBase}/chef-surprise`);
-        const data = await res.json();
-        loadingDiv.textContent = '';
-
-        resultDiv.innerHTML = renderRecipe(data);
-      } catch (err) {
-        loadingDiv.textContent = '';
-        resultDiv.innerHTML = `<p style="color:red;"><strong>Error: ${err.message}</strong></p>`;
+      if (!recipes || recipes.length === 0) {
+        resultsDiv.innerHTML = "<p>No recipes found.</p>";
+        return;
       }
+
+      recipes.forEach((recipe) => {
+        const card = document.createElement("div");
+        card.className = "recipe-card";
+        card.innerHTML = `
+          <h3>${recipe.title || "No title available"}</h3>
+          <p><strong>Ingredients:</strong> ${recipe.ingredients || "N/A"}</p>
+          <p><strong>Directions:</strong> ${recipe.directions || "N/A"}</p>
+        `;
+        resultsDiv.appendChild(card);
+      });
     }
   </script>
 </body>
